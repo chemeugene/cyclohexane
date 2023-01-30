@@ -10,7 +10,9 @@ object TopicMainView {
     @Composable
     fun Panel(appState: AppState) {
         if (appState.mainContentView == MainContentView.TOPIC_VIEW) {
-            Text("Topic")
+            appState.selectedTreeModel?.consumerGroups?.forEach { group ->
+                Text(group)
+            }
         }
     }
 }

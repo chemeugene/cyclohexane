@@ -1,5 +1,6 @@
 package ru.tinkoff.cyclohexane.ui.component.cluster.tree
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import ru.tinkoff.cyclohexane.persistence.entity.ClusterEntity
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.CLUSTER
@@ -11,7 +12,7 @@ data class ClusterTreeModel(
     val parent: ClusterTreeModel? = null
 ) {
     var children: MutableMap<String, ClusterTreeModel> = mutableStateMapOf()
-
+    var consumerGroups: MutableList<String> = mutableStateListOf()
 
     enum class ItemType(
         val level: Int
