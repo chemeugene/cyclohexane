@@ -56,11 +56,11 @@ object ClusterPropertiesView {
         if (appState.mainContentView == CLUSTER_PROPERTIES_FORM) {
             var expanded by remember { mutableStateOf(false) }
             var cluster = if (!appState.isClusterSelected()) {
-                remember { ClusterPropertiesModel() }!!
+                remember { ClusterPropertiesModel() }
             } else {
                 remember(appState.selectedTreeModel!!.id) {
                     ClusterEntity.find(appState.selectedTreeModel!!.id as UUID).toPropertiesModel()
-                }!!
+                }
             }
 
             Column(modifier = Modifier.fillMaxWidth()) {

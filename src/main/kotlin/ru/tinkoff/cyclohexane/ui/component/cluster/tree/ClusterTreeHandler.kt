@@ -4,7 +4,7 @@ import mu.KLogging
 import org.apache.kafka.clients.admin.ConsumerGroupDescription
 import org.koin.core.component.KoinComponent
 import ru.tinkoff.cyclohexane.component.kafkaclient.KafkaManager
-import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.TOPIC
+import java.lang.Exception
 import java.util.UUID
 
 interface ClusterTreeHandler {
@@ -19,21 +19,42 @@ class ClusterTreeHandlerImpl(
 ) : ClusterTreeHandler, KoinComponent {
 
     override suspend fun connect(cluster: ClusterTreeModel) {
+        if (cluster.connected) {
+            logger.debug { "Already connected" }
+            return
+        }
         logger.debug { "Connecting ${cluster.name}" }
         val clusterId = cluster.id as UUID
-        val topics = kafkaManager.getTopics(clusterId)
-        val consumerGroups = kafkaManager.getAccessibleConsumerGroups(clusterId)
-        val groupsDescription = kafkaManager.describeConsumerGroups(clusterId, consumerGroups)
-        topics.forEach { topic ->
-            cluster.children[topic.name()] = ClusterTreeModel(
-                id = topic.topicId(),
-                name = topic.name(),
-                type = TOPIC,
-                cluster
-            ).also {
-                it.consumerGroups.addAll(getTopicGroups(topic.name(), consumerGroups, groupsDescription))
-            }
+        val topics = try {
+            kafkaManager.getAccessibleTopics(clusterId)
+        } catch (e: Exception) {
+            logger.error(e) { "Error getting accessible topics" }
+            kafkaManager.getTopics(clusterId)
         }
+        val consumerGroups = kafkaManager.getAccessibleConsumerGroups(clusterId).map {
+            ConsumerGroupTreeModel(it, it, cluster)
+        }
+        cluster.consumerGroups = ConsumerGroupListTreeModel(parent = cluster)
+            .apply {
+                this.consumerGroups.addAll(consumerGroups)
+            }
+        cluster.topics = TopicListTreeModel(parent = cluster)
+            .apply {
+                this.topics.addAll(
+                    topics.map {
+                        TopicTreeModel(
+                            id = it.id,
+                            name = it.name,
+                            cluster
+                        )
+                    }.sortedBy { it.name }
+                )
+            }
+        if (!cluster.isExpanded()) {
+            cluster.toggleExpanded()
+        }
+        cluster.connected = true
+
         logger.debug { "Connected ${cluster.name}" }
     }
 
@@ -50,12 +71,12 @@ class ClusterTreeHandlerImpl(
                 tp.topic() == topic
             }?.takeIf { it.isNotEmpty() }?.let {
                 groupId
-            } ?: null
+            }
         }
 
     override fun disconnect(cluster: ClusterTreeModel) {
         logger.debug { "Disconnected ${cluster.name}" }
-        cluster.children.clear()
+        cluster.disconnect()
     }
 
     companion object : KLogging()

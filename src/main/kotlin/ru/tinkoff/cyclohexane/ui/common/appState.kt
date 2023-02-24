@@ -7,8 +7,8 @@ import androidx.compose.runtime.setValue
 import ru.tinkoff.cyclohexane.persistence.entity.ClusterEntity
 import ru.tinkoff.cyclohexane.ui.common.MainContentView.NOTHING
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel
-import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.CLUSTER
-import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.TOPIC
+import ru.tinkoff.cyclohexane.ui.component.cluster.tree.TopicTreeModel
+import ru.tinkoff.cyclohexane.ui.component.cluster.tree.TreeModel
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.toTreeModel
 
 object AppState {
@@ -20,9 +20,9 @@ object AppState {
             it.addAll(ClusterEntity.findAll().map { entity -> entity.toTreeModel() })
         }
 
-    var selectedTreeModel by mutableStateOf<ClusterTreeModel?>(null)
+    var selectedTreeModel by mutableStateOf<TreeModel?>(null)
 
-    fun isClusterSelected() = selectedTreeModel?.type == CLUSTER
+    fun isClusterSelected() = selectedTreeModel is ClusterTreeModel
 
-    fun isTopicSelected() = selectedTreeModel?.type == TOPIC
+    fun isTopicSelected() = selectedTreeModel is TopicTreeModel
 }

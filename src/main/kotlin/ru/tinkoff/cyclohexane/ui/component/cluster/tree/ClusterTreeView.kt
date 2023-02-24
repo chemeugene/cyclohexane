@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.onClick
 import androidx.compose.foundation.rememberScrollState
@@ -45,12 +46,9 @@ import ru.tinkoff.cyclohexane.ui.common.AppState
 import ru.tinkoff.cyclohexane.ui.common.AppTheme
 import ru.tinkoff.cyclohexane.ui.common.CONNECT_BTN
 import ru.tinkoff.cyclohexane.ui.common.DISCONNECT_BTN
-import ru.tinkoff.cyclohexane.ui.common.MainContentView
 import ru.tinkoff.cyclohexane.ui.common.MainContentView.NOTHING
 import ru.tinkoff.cyclohexane.ui.common.MainContentView.TOPIC_VIEW
 import ru.tinkoff.cyclohexane.ui.component.AppText
-import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.CLUSTER
-import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeModel.ItemType.TOPIC
 
 
 object ClusterTreeView : KoinComponent {
@@ -71,7 +69,7 @@ object ClusterTreeView : KoinComponent {
                 appState.clusterTreeModel
                     .sortedBy { it.name }
                     .forEach { cluster ->
-                        renderItem(appState, cluster)
+                        renderCluster(appState, cluster)
                     }
             }
             VerticalScrollbar(
@@ -83,24 +81,46 @@ object ClusterTreeView : KoinComponent {
     }
 
     @Composable
-    fun renderItem(appState: AppState, item: ClusterTreeModel) {
-        ClusterTreeItem(appState, item)
-        item.children.values.forEach { child ->
-            renderItem(appState, child)
+    fun renderCluster(appState: AppState, item: ClusterTreeModel) {
+        TreeItem(appState, item)
+        if (item.isExpanded()) {
+            item.topics?.let {
+                renderTopics(appState, it)
+            }
+            item.consumerGroups?.let {
+                renderConsumerGroups(appState, it)
+            }
+        }
+    }
+
+    @Composable
+    fun renderTopics(appState: AppState, item: TopicListTreeModel) {
+        TreeItem(appState, item)
+        if (item.isExpanded()) {
+            item.topics.forEach { TreeItem(appState, it) }
+        }
+    }
+
+    @Composable
+    fun renderConsumerGroups(appState: AppState, item: ConsumerGroupListTreeModel) {
+        TreeItem(appState, item)
+        if (item.isExpanded()) {
+            item.consumerGroups.forEach { TreeItem(appState, it) }
         }
     }
 
     @Composable
     @OptIn(ExperimentalFoundationApi::class)
-    private fun ClusterTreeItem(
+    private fun TreeItem(
         appState: AppState,
-        model: ClusterTreeModel,
+        model: TreeModel,
         fontSize: TextUnit = 10.sp,
     ) {
         var menuVisible = remember { mutableStateOf(false) }
         Row(
             modifier = Modifier
                 .wrapContentHeight()
+                .padding(start = model.padding)
                 .clickable {
                     appState.selectedTreeModel = model
                 }
@@ -117,6 +137,9 @@ object ClusterTreeView : KoinComponent {
                     onClick = {
                         appState.selectedTreeModel = model
                         model.onClickAction(appState)
+                        if (model.expandable) {
+                            (model as Expandable).toggleExpanded()
+                        }
                     }
                 )
                 .height(22.dp)
@@ -131,7 +154,7 @@ object ClusterTreeView : KoinComponent {
             val interactionSource = remember { MutableInteractionSource() }
             val active by interactionSource.collectIsHoveredAsState()
 
-            //FileItemIcon(Modifier.align(Alignment.CenterVertically), model)
+            TreeIconView(model)
             Text(
                 text = model.name,
                 color = if (active) LocalContentColor.current.copy(alpha = 0.60f) else LocalContentColor.current,
@@ -149,9 +172,9 @@ object ClusterTreeView : KoinComponent {
     }
 
     @Composable
-    private fun ClusterTreeModel.renderMenu(appState: AppState, menuVisible: MutableState<Boolean>) {
-        when (type) {
-            CLUSTER -> {
+    private fun TreeModel.renderMenu(appState: AppState, menuVisible: MutableState<Boolean>) {
+        when (this) {
+            is ClusterTreeModel -> {
                 CursorDropdownMenu(
                     expanded = menuVisible.value,
                     onDismissRequest = { menuVisible.value = false }
@@ -161,33 +184,33 @@ object ClusterTreeView : KoinComponent {
                     DropdownMenuItem(onClick = {
                         menuVisible.value = false
                         coroutineScope.launch(Dispatchers.IO) {
-                            clusterTreeHandler.connect(appState.selectedTreeModel!!)
+                            clusterTreeHandler.connect(appState.selectedTreeModel!! as ClusterTreeModel)
                         }
                     }) {
                         AppText(CONNECT_BTN)
                     }
                     DropdownMenuItem(onClick = {
                         menuVisible.value = false
-                        clusterTreeHandler.disconnect(appState.selectedTreeModel!!)
+                        clusterTreeHandler.disconnect(appState.selectedTreeModel!! as ClusterTreeModel)
                     }) {
                         AppText(DISCONNECT_BTN)
                     }
                 }
             }
 
-            TOPIC -> {
+            is TopicTreeModel -> {
 
             }
         }
     }
 
-    private fun ClusterTreeModel.onClickAction(appState: AppState) {
-        when (type) {
-            CLUSTER -> {
+    private fun TreeModel.onClickAction(appState: AppState) {
+        when (this) {
+            is ClusterTreeModel -> {
                 appState.mainContentView = NOTHING
             }
 
-            TOPIC -> {
+            is TopicTreeModel -> {
                 appState.mainContentView = TOPIC_VIEW
             }
         }

@@ -6,7 +6,9 @@ import java.util.UUID
 
 interface KafkaManager {
 
-    fun getTopics(cluster: UUID): Collection<TopicListing>
+    fun getTopics(cluster: UUID): Collection<KafkaTopic>
+
+    fun getAccessibleTopics(cluster: UUID): Collection<KafkaTopic>
 
     fun getAccessibleConsumerGroups(cluster: UUID): Collection<String>
 
@@ -16,3 +18,8 @@ interface KafkaManager {
     ): Map<String, ConsumerGroupDescription>
 
 }
+
+data class KafkaTopic(
+    val id: String,
+    val name: String
+)

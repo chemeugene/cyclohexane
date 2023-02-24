@@ -12,6 +12,9 @@ object AppTheme {
         val backgroundMedium: Color = Color(0xFF3C3F41),
         val backgroundLight: Color = Color(0xFF4E5254),
 
+        val connected: Color = Color(0x49FF33),
+        val disconnected: Color = Color(0x9E061F),
+
         val material: androidx.compose.material.Colors = darkColors(
             background = backgroundDark,
             surface = backgroundMedium,

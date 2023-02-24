@@ -22,8 +22,31 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
 
     private val clients = mutableMapOf<UUID, AdminClient>()
 
-    override fun getTopics(cluster: UUID): Collection<TopicListing> =
+    override fun getTopics(cluster: UUID): Collection<KafkaTopic> =
         getAdminClient(cluster).listTopics().listings().get()
+            .map { KafkaTopic(it.topicId().toString(), it.name()) }
+
+    override fun getAccessibleTopics(cluster: UUID): Collection<KafkaTopic> =
+        ClusterEntity.find(cluster).let {
+            runCatching {
+                getAdminClient(cluster).describeAcls(
+                    AclBindingFilter(
+                        ResourcePatternFilter(ResourceType.TOPIC, null, PatternType.ANY),
+                        AccessControlEntryFilter(
+                            "User:${parseJaasUserName(it.jaasConfig!!)}",
+                            null,
+                            AclOperation.DESCRIBE,
+                            AclPermissionType.ALLOW
+                        )
+                    )
+                ).values().get().map {
+                    KafkaTopic(
+                        id = it.pattern().name(),
+                        name = it.pattern().name()
+                    )
+                }.toSet()
+            }.getOrDefault(setOf())
+        }
 
     override fun getAccessibleConsumerGroups(cluster: UUID): Collection<String> =
         ClusterEntity.find(cluster).let {
