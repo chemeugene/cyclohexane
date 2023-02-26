@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import ru.tinkoff.cyclohexane.component.kafkaclient.KafkaOffset
 import ru.tinkoff.cyclohexane.persistence.entity.ClusterEntity
 
 data class ClusterTreeModel(
@@ -71,9 +72,13 @@ data class ConsumerGroupTreeModel(
     override val id: Any,
     override val name: String,
     override val parent: TreeModel?,
-    override val padding: Dp = 10.dp
+    override val padding: Dp = 10.dp,
+    val offsetProvider: () -> Collection<KafkaOffset> = { emptySet() }
 ) : TreeModel {
     override val expandable = false
+    val groupOffsets: MutableList<KafkaOffset> by lazy {
+        mutableStateListOf(*offsetProvider.invoke().toTypedArray())
+    }
 }
 
 data class ConsumerGroupListTreeModel(

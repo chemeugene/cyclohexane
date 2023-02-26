@@ -29,8 +29,7 @@ class Application : KoinComponent {
             Window(
                 onCloseRequest = ::exitApplication,
                 title = "Cyclohexane UI",
-                state = rememberWindowState(width = 900.dp, height = 600.dp),
-                resizable = false
+                state = rememberWindowState(width = 900.dp, height = 600.dp)
             ) {
                 MaterialTheme(
                     colors = AppTheme.colors.material

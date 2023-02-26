@@ -27,5 +27,6 @@ enum class SecurityType(
 enum class MainContentView {
     CLUSTER_PROPERTIES_FORM,
     TOPIC_VIEW,
+    CONSUMER_GROUP,
     NOTHING
 }

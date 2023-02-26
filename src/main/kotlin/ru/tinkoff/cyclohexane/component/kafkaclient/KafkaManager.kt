@@ -1,16 +1,19 @@
 package ru.tinkoff.cyclohexane.component.kafkaclient
 
 import org.apache.kafka.clients.admin.ConsumerGroupDescription
-import org.apache.kafka.clients.admin.TopicListing
 import java.util.UUID
 
 interface KafkaManager {
 
     fun getTopics(cluster: UUID): Collection<KafkaTopic>
 
+    fun getConsumerGroups(cluster: UUID): Collection<KafkaGroup>
+
     fun getAccessibleTopics(cluster: UUID): Collection<KafkaTopic>
 
-    fun getAccessibleConsumerGroups(cluster: UUID): Collection<String>
+    fun getAccessibleConsumerGroups(cluster: UUID): Collection<KafkaGroup>
+
+    fun getConsumerGroupOffset(cluster: UUID, groupId: String): Collection<KafkaOffset>
 
     fun describeConsumerGroups(
         cluster: UUID,
@@ -22,4 +25,15 @@ interface KafkaManager {
 data class KafkaTopic(
     val id: String,
     val name: String
+)
+
+data class KafkaGroup(
+    val id: String,
+    val name: String
+)
+
+data class KafkaOffset(
+    val topic: String,
+    val partition: Int,
+    val offset: Long
 )

@@ -27,6 +27,8 @@ class KafkaManagerTest : KoinTest {
     fun debugTest() {
         val qaCluster = UUID.fromString("b194e0b4-789d-44d4-9446-cfcac43e2f2b")
         Database.db
+        val allTopic = kafkaManager.getTopics(qaCluster)
+        val allGroup = kafkaManager.getConsumerGroups(qaCluster)
         val topics = kafkaManager.getAccessibleTopics(qaCluster)
         val consumerGroups = kafkaManager.getAccessibleConsumerGroups(qaCluster)
         logger.info { "Topics: $topics" }

@@ -32,7 +32,9 @@ class ClusterTreeHandlerImpl(
             kafkaManager.getTopics(clusterId)
         }
         val consumerGroups = kafkaManager.getAccessibleConsumerGroups(clusterId).map {
-            ConsumerGroupTreeModel(it, it, cluster)
+            ConsumerGroupTreeModel(it.id, it.name, cluster) {
+                kafkaManager.getConsumerGroupOffset(clusterId, it.name)
+            }
         }
         cluster.consumerGroups = ConsumerGroupListTreeModel(parent = cluster)
             .apply {

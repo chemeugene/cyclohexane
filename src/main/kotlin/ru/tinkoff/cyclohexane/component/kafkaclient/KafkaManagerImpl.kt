@@ -2,7 +2,6 @@ package ru.tinkoff.cyclohexane.component.kafkaclient
 
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.ConsumerGroupDescription
-import org.apache.kafka.clients.admin.TopicListing
 import org.apache.kafka.common.acl.AccessControlEntryFilter
 import org.apache.kafka.common.acl.AclBindingFilter
 import org.apache.kafka.common.acl.AclOperation
@@ -26,10 +25,14 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
         getAdminClient(cluster).listTopics().listings().get()
             .map { KafkaTopic(it.topicId().toString(), it.name()) }
 
+    override fun getConsumerGroups(cluster: UUID): Collection<KafkaGroup> =
+        getAdminClient(cluster).listConsumerGroups().valid().get()
+            .map { KafkaGroup(it.groupId(), it.groupId()) }
+
     override fun getAccessibleTopics(cluster: UUID): Collection<KafkaTopic> =
         ClusterEntity.find(cluster).let {
             runCatching {
-                getAdminClient(cluster).describeAcls(
+                val topicBindings = getAdminClient(cluster).describeAcls(
                     AclBindingFilter(
                         ResourcePatternFilter(ResourceType.TOPIC, null, PatternType.ANY),
                         AccessControlEntryFilter(
@@ -40,18 +43,16 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
                         )
                     )
                 ).values().get().map {
-                    KafkaTopic(
-                        id = it.pattern().name(),
-                        name = it.pattern().name()
-                    )
-                }.toSet()
+                    it.pattern().name()
+                }.toHashSet()
+                getTopics(cluster).filter { topicBindings.contains(it.name) }
             }.getOrDefault(setOf())
         }
 
-    override fun getAccessibleConsumerGroups(cluster: UUID): Collection<String> =
+    override fun getAccessibleConsumerGroups(cluster: UUID): Collection<KafkaGroup> =
         ClusterEntity.find(cluster).let {
             runCatching {
-                getAdminClient(cluster).describeAcls(
+                val groupBindings = getAdminClient(cluster).describeAcls(
                     AclBindingFilter(
                         ResourcePatternFilter(ResourceType.GROUP, null, PatternType.ANY),
                         AccessControlEntryFilter(
@@ -62,8 +63,17 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
                         )
                     )
                 ).values().get().map { it.pattern().name() }.toSet()
+                getConsumerGroups(cluster).filter { group -> groupBindings.any { group.name.contains(it) } }.toHashSet()
             }.getOrDefault(setOf())
         }
+
+    override fun getConsumerGroupOffset(cluster: UUID, groupId: String): Collection<KafkaOffset> =
+        getAdminClient(cluster)
+            .listConsumerGroupOffsets(groupId)
+            .partitionsToOffsetAndMetadata()
+            .get()
+            .map { KafkaOffset(it.key.topic(), it.key.partition(), it.value.offset()) }
+            .sortedWith(compareBy({ it.topic }, { it.partition }))
 
     override fun describeConsumerGroups(
         cluster: UUID,

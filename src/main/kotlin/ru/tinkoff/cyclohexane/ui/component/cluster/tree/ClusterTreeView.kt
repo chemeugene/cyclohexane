@@ -46,6 +46,7 @@ import ru.tinkoff.cyclohexane.ui.common.AppState
 import ru.tinkoff.cyclohexane.ui.common.AppTheme
 import ru.tinkoff.cyclohexane.ui.common.CONNECT_BTN
 import ru.tinkoff.cyclohexane.ui.common.DISCONNECT_BTN
+import ru.tinkoff.cyclohexane.ui.common.MainContentView.CONSUMER_GROUP
 import ru.tinkoff.cyclohexane.ui.common.MainContentView.NOTHING
 import ru.tinkoff.cyclohexane.ui.common.MainContentView.TOPIC_VIEW
 import ru.tinkoff.cyclohexane.ui.component.AppText
@@ -116,7 +117,7 @@ object ClusterTreeView : KoinComponent {
         model: TreeModel,
         fontSize: TextUnit = 10.sp,
     ) {
-        var menuVisible = remember { mutableStateOf(false) }
+        val menuVisible = remember { mutableStateOf(false) }
         Row(
             modifier = Modifier
                 .wrapContentHeight()
@@ -212,6 +213,10 @@ object ClusterTreeView : KoinComponent {
 
             is TopicTreeModel -> {
                 appState.mainContentView = TOPIC_VIEW
+            }
+
+            is ConsumerGroupTreeModel -> {
+                appState.mainContentView = CONSUMER_GROUP
             }
         }
     }
