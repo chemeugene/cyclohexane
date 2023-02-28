@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ru.tinkoff.cyclohexane.component.kafkaclient.KafkaOffset
 import ru.tinkoff.cyclohexane.persistence.entity.ClusterEntity
+import java.util.UUID
 
 data class ClusterTreeModel(
     override val id: Any,
@@ -79,6 +80,8 @@ data class ConsumerGroupTreeModel(
     val groupOffsets: MutableList<KafkaOffset> by lazy {
         mutableStateListOf(*offsetProvider.invoke().toTypedArray())
     }
+
+    fun clusterId() = parent!!.parent!!.id as UUID
 }
 
 data class ConsumerGroupListTreeModel(

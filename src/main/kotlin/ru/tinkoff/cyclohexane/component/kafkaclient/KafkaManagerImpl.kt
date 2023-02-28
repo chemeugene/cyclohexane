@@ -2,6 +2,8 @@ package ru.tinkoff.cyclohexane.component.kafkaclient
 
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.ConsumerGroupDescription
+import org.apache.kafka.clients.consumer.OffsetAndMetadata
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.acl.AccessControlEntryFilter
 import org.apache.kafka.common.acl.AclBindingFilter
 import org.apache.kafka.common.acl.AclOperation
@@ -80,6 +82,14 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
         groupIds: Collection<String>
     ): Map<String, ConsumerGroupDescription> =
         getAdminClient(cluster).describeConsumerGroups(groupIds).all().get()
+
+    override fun commitOffset(cluster: UUID, groupId: String, topic: String, partition: Int, offset: Long) {
+        getAdminClient(cluster)
+            .alterConsumerGroupOffsets(
+                groupId,
+                mapOf(TopicPartition(topic, partition) to OffsetAndMetadata(offset))
+            ).all().get()
+    }
 
     private fun getAdminClient(cluster: UUID) = clients.computeIfAbsent(cluster) {
         clientFactory.createClient(ClusterEntity.find(cluster))

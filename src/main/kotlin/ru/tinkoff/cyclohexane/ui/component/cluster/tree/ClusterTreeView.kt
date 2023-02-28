@@ -207,7 +207,7 @@ object ClusterTreeView : KoinComponent {
 
     private fun TreeModel.onClickAction(appState: AppState) {
         when (this) {
-            is ClusterTreeModel -> {
+            is ClusterTreeModel, is ConsumerGroupListTreeModel -> {
                 appState.mainContentView = NOTHING
             }
 

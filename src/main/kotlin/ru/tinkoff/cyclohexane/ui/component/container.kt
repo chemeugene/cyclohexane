@@ -4,7 +4,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +20,6 @@ import ru.tinkoff.cyclohexane.ui.common.VerticalSplittable
 import ru.tinkoff.cyclohexane.ui.component.cluster.menu.ClusterManagementView
 import ru.tinkoff.cyclohexane.ui.component.cluster.properties.ClusterPropertiesView
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeView
-import ru.tinkoff.cyclohexane.ui.component.topic.TopicMainView
 
 @Composable
 fun MainContainer() {
@@ -55,7 +53,7 @@ fun MainContainer() {
         }
         Column(Modifier.fillMaxWidth()) {
             ClusterPropertiesView.Form(appState)
-            TopicMainView.Panel(appState)
+            MainView.Panel(appState)
         }
     }
 }

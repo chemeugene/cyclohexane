@@ -31,12 +31,13 @@ class ClusterTreeHandlerImpl(
             logger.error(e) { "Error getting accessible topics" }
             kafkaManager.getTopics(clusterId)
         }
+        val consumerGroupList = ConsumerGroupListTreeModel(parent = cluster)
         val consumerGroups = kafkaManager.getAccessibleConsumerGroups(clusterId).map {
-            ConsumerGroupTreeModel(it.id, it.name, cluster) {
+            ConsumerGroupTreeModel(it.id, it.name, consumerGroupList) {
                 kafkaManager.getConsumerGroupOffset(clusterId, it.name)
             }
         }
-        cluster.consumerGroups = ConsumerGroupListTreeModel(parent = cluster)
+        cluster.consumerGroups = consumerGroupList
             .apply {
                 this.consumerGroups.addAll(consumerGroups)
             }

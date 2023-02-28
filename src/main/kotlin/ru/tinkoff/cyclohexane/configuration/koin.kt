@@ -9,10 +9,13 @@ import ru.tinkoff.cyclohexane.persistence.dao.MigrationService
 import ru.tinkoff.cyclohexane.persistence.dao.impl.MigrationServiceImpl
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeHandler
 import ru.tinkoff.cyclohexane.ui.component.cluster.tree.ClusterTreeHandlerImpl
+import ru.tinkoff.cyclohexane.ui.component.consumerGroup.OffsetTableHandler
+import ru.tinkoff.cyclohexane.ui.component.consumerGroup.OffsetTableHandlerImpl
 
 val appModule = module {
     single<MigrationService> { MigrationServiceImpl() }
     single<ClusterTreeHandler> { ClusterTreeHandlerImpl(get()) }
     single<ClientFactory> { ClientFactoryImpl() }
     single<KafkaManager> { KafkaManagerImpl() }
+    single<OffsetTableHandler> {OffsetTableHandlerImpl(get())}
 }

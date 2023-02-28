@@ -20,6 +20,14 @@ interface KafkaManager {
         groupIds: Collection<String>
     ): Map<String, ConsumerGroupDescription>
 
+    fun commitOffset(
+        cluster: UUID,
+        groupId: String,
+        topic: String,
+        partition: Int,
+        offset: Long
+    )
+
 }
 
 data class KafkaTopic(
@@ -35,5 +43,5 @@ data class KafkaGroup(
 data class KafkaOffset(
     val topic: String,
     val partition: Int,
-    val offset: Long
+    var offset: Long
 )
