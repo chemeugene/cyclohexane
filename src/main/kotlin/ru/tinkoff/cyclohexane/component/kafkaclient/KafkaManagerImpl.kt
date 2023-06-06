@@ -1,5 +1,6 @@
 package ru.tinkoff.cyclohexane.component.kafkaclient
 
+import mu.KLogging
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.ConsumerGroupDescription
 import org.apache.kafka.clients.consumer.OffsetAndMetadata
@@ -48,8 +49,12 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
                     it.pattern().name()
                 }.toHashSet()
                 getTopics(cluster).filter { topicBindings.contains(it.name) }
-            }.getOrDefault(setOf())
-        }
+            }.onFailure {
+                logger.error { "Error fetching topic list: $it" }
+            }.recover {
+                getTopics(cluster)
+            }
+        }.getOrDefault(setOf())
 
     override fun getAccessibleConsumerGroups(cluster: UUID): Collection<KafkaGroup> =
         ClusterEntity.find(cluster).let {
@@ -66,6 +71,10 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
                     )
                 ).values().get().map { it.pattern().name() }.toSet()
                 getConsumerGroups(cluster).filter { group -> groupBindings.any { group.name.contains(it) } }.toHashSet()
+            }.onFailure {
+                logger.error { "Error fetching consumer group list: $it" }
+            }.recover {
+                getConsumerGroups(cluster)
             }.getOrDefault(setOf())
         }
 
@@ -94,4 +103,6 @@ class KafkaManagerImpl : KafkaManager, KoinComponent {
     private fun getAdminClient(cluster: UUID) = clients.computeIfAbsent(cluster) {
         clientFactory.createClient(ClusterEntity.find(cluster))
     }
+
+    companion object : KLogging()
 }
